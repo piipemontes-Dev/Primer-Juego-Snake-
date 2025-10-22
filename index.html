@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - Juego de la Culebrita</title>
+    
+    <style>
+        /* --- SECCIÓN: CSS --- */
+        
+        /* Variables CSS para personalización fácil */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --border-color: #bdc3c7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--background-color), #d5dbdb);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .high-score {
+            font-size: 1em;
+            color: var(--warning-color);
+        }
+
+        .game-status {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .game-status.playing {
+            background: var(--success-color);
+        }
+
+        .game-status.paused {
+            background: var(--warning-color);
+        }
+
+        .game-status.game-over {
+            background: var(--danger-color);
+        }
+
+        .game-board {
+            border: 3px solid var(--primary-color);
+            border-radius: 10px;
+            margin: 0 auto 20px;
+            position: relative;
+            background: #f8f9fa;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .snake-segment {
+            position: absolute;
+            border-radius: 2px;
+            transition: all 0.1s ease;
+        }
+
+        .snake-head {
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .food {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .configuration {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .config-section {
+            margin-bottom: 15px;
+        }
+
+        .config-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .config-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .config-option {
+            padding: 5px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .config-option:hover {
+            border-color: var(--secondary-color);
+        }
+
+        .config-option.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .instructions {
+            background: #e8f4f8;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instructions li:before {
+            content: "🎮";
+            position: absolute;
+            left: 0;
+        }
+
+        .mobile-controls {
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary-color);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 15px;
+            }
+            
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+        }
+
+        /* Skins personalizados */
+        .skin-pixel .snake-segment {
+            border-radius: 0;
+        }
+
+        .skin-smooth .snake-segment {
+            border-radius: 50%;
+        }
+
+        .skin-neon .snake-segment {
+            box-shadow: 0 0 10px currentColor;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🐍 Snake Game Montes</h1>
+        </div>
+
+        <div class="game-info">
+            <div class="score-display">Puntuación: <span id="score">0</span></div>
+            <div class="high-score">Mejor: <span id="highScore">0</span></div>
+            <div class="game-status" id="gameStatus">Presiona START</div>
+        </div>
+
+        <div class="instructions">
+            <h3>Instrucciones:</h3>
+            <ul>
+                <li>Usa las flechas del teclado o WASD para mover la serpiente</li>
+                <li>Come la comida roja para crecer y ganar puntos</li>
+                <li>Evita chocar con las paredes y contigo misma</li>
+                <li>¡La velocidad aumenta con la puntuación!</li>
+            </ul>
+        </div>
+
+        <div class="configuration">
+            <div class="config-section">
+                <label class="config-label">Dificultad:</label>
+                <div class="config-options">
+                    <div class="config-option active" data-difficulty="easy">Fácil</div>
+                    <div class="config-option" data-difficulty="normal">Normal</div>
+                    <div class="config-option" data-difficulty="hard">Difícil</div>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label">Tamaño de cuadrícula:</label>
+                <div class="config-options">
+                    <div class="config-option active" data-grid="16">16x16</div>
+                    <div class="config-option" data-grid="24">24x24</div>
+                    <div class="config-option" data-grid="32">32x32</div>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label">Modo de borde:</label>
+                <div class="config-options">
+                    <div class="config-option active" data-border="solid">Paredes sólidas</div>
+                    <div class="config-option" data-border="wrap">Atravesar borde</div>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label">Apariencia:</label>
+                <div class="config-options">
+                    <div class="config-option active" data-skin="classic">Clásico</div>
+                    <div class="config-option" data-skin="pixel">Pixel Art</div>
+                    <div class="config-option" data-skin="smooth">Suave</div>
+                    <div class="config-option" data-skin="neon">Neón</div>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <label class="config-label">Sonidos:</label>
+                <div class="config-options">
+                    <div class="config-option active" data-sound="on">Activados</div>
+                    <div class="config-option" data-sound="off">Desactivados</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="controls">
+            <button class="btn btn-success" id="startBtn">Start</button>
+            <button class="btn btn-warning" id="pauseBtn" disabled>Pause</button>
+            <button class="btn btn-danger" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="mobile-controls">
+            <button class="mobile-btn" id="upBtn">↑</button>
+            <div>
+                <button class="mobile-btn" id="leftBtn">←</button>
+                <button class="mobile-btn" id="rightBtn">→</button>
+            </div>
+            <button class="mobile-btn" id="downBtn">↓</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- SECCIÓN: JS --- */
+        
+        // --- PERSONALIZAR AQUÍ ---
+        // Configuración por defecto del juego
+        const DEFAULT_GRID = 16;           // Tamaño de cuadrícula por defecto
+        const DEFAULT_DIFFICULTY = 'easy';  // Dificultad por defecto
+        const DEFAULT_BORDER = 'solid';     // Modo de borde por defecto
+        const DEFAULT_SKIN = 'classic';     // Skin por defecto
+        const DEFAULT_SOUND = true;         // Sonidos por defecto
+        
+        // Configuraciones de dificultad
+        const DIFFICULTY_SETTINGS = {
+            easy: { initialSpeed: 150, speedIncrease: 5, maxSpeed: 50 },
+            normal: { initialSpeed: 120, speedIncrease: 8, maxSpeed: 40 },
+            hard: { initialSpeed: 100, speedIncrease: 10, maxSpeed: 30 }
+        };
+
+        // Paletas de colores para diferentes skins
+        const SKIN_COLORS = {
+            classic: { snake: '#27ae60', food: '#e74c3c', head: '#2ecc71' },
+            pixel: { snake: '#8e44ad', food: '#e67e22', head: '#9b59b6' },
+            smooth: { snake: '#3498db', food: '#e74c3c', head: '#2980b9' },
+            neon: { snake: '#00ff00', food: '#ff0000', head: '#00ffff' }
+        };
+
+        // Variables globales del juego
+        let gameState = {
+            isRunning: false,
+            isPaused: false,
+            score: 0,
+            highScore: 0,
+            gridSize: DEFAULT_GRID,
+            difficulty: DEFAULT_DIFFICULTY,
+            borderMode: DEFAULT_BORDER,
+            skin: DEFAULT_SKIN,
+            soundEnabled: DEFAULT_SOUND
+        };
+
+        let gameLoop = null;
+        let currentSpeed = 0;
+        let snake = [];
+        let food = {};
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+
+        // Elementos del DOM
+        const gameBoard = document.getElementById('gameBoard');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameStatusElement = document.getElementById('gameStatus');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Sistema de sonidos con WebAudio
+        class SoundSystem {
+            constructor() {
+                this.audioContext = null;
+                this.sounds = {};
+                this.init();
+            }
+
+            init() {
+                // Crear contexto de audio
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Crear sonido simple para comer comida
+            playEatSound() {
+                if (!gameState.soundEnabled) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.1);
+            }
+
+            // Crear sonido para game over
+            playGameOverSound() {
+                if (!gameState.soundEnabled) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, this.audioContext.currentTime + 0.5);
+                
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.5);
+            }
+        }
+
+        const soundSystem = new SoundSystem();
+
+        // Inicialización del juego
+        function initGame() {
+            loadSettings();
+            setupEventListeners();
+            updateDisplay();
+            renderGameBoard();
+        }
+
+        // Cargar configuraciones guardadas
+        function loadSettings() {
+            const saved = localStorage.getItem('snakeGameSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                gameState = { ...gameState, ...settings };
+            }
+            
+            // Aplicar configuraciones a la UI
+            applySettingsToUI();
+        }
+
+        // Guardar configuraciones
+        function saveSettings() {
+            localStorage.setItem('snakeGameSettings', JSON.stringify(gameState));
+        }
+
+        // Aplicar configuraciones a la interfaz
+        function applySettingsToUI() {
+            // Actualizar opciones activas
+            document.querySelectorAll('.config-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            document.querySelector(`[data-difficulty="${gameState.difficulty}"]`)?.classList.add('active');
+            document.querySelector(`[data-grid="${gameState.gridSize}"]`)?.classList.add('active');
+            document.querySelector(`[data-border="${gameState.borderMode}"]`)?.classList.add('active');
+            document.querySelector(`[data-skin="${gameState.skin}"]`)?.classList.add('active');
+            document.querySelector(`[data-sound="${gameState.soundEnabled ? 'on' : 'off'}"]`)?.classList.add('active');
+            
+            // Aplicar skin al body
+            document.body.className = `skin-${gameState.skin}`;
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Controles de teclado
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // Botones de control
+            startBtn.addEventListener('click', startGame);
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetGame);
+            
+            // Configuraciones
+            document.querySelectorAll('.config-option').forEach(option => {
+                option.addEventListener('click', handleConfigChange);
+            });
+            
+            // Controles móviles
+            document.getElementById('upBtn').addEventListener('click', () => setDirection(0, -1));
+            document.getElementById('downBtn').addEventListener('click', () => setDirection(0, 1));
+            document.getElementById('leftBtn').addEventListener('click', () => setDirection(-1, 0));
+            document.getElementById('rightBtn').addEventListener('click', () => setDirection(1, 0));
+            
+            // Soporte táctil para swipe
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            gameBoard.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            gameBoard.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                const minSwipeDistance = 30;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // Swipe horizontal
+                    if (Math.abs(deltaX) > minSwipeDistance) {
+                        setDirection(deltaX > 0 ? 1 : -1, 0);
+                    }
+                } else {
+                    // Swipe vertical
+                    if (Math.abs(deltaY) > minSwipeDistance) {
+                        setDirection(0, deltaY > 0 ? 1 : -1);
+                    }
+                }
+            });
+        }
+
+        // Manejar teclas presionadas
+        function handleKeyPress(e) {
+            if (!gameState.isRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    setDirection(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    setDirection(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    setDirection(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    setDirection(1, 0);
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+            }
+        }
+
+        // Establecer dirección de movimiento
+        function setDirection(x, y) {
+            // Prevenir movimiento en dirección opuesta
+            if (direction.x === -x && direction.y === -y) return;
+            nextDirection = { x, y };
+        }
+
+        // Manejar cambios de configuración
+        function handleConfigChange(e) {
+            const option = e.target;
+            const type = option.dataset.difficulty ? 'difficulty' :
+                        option.dataset.grid ? 'gridSize' :
+                        option.dataset.border ? 'borderMode' :
+                        option.dataset.skin ? 'skin' :
+                        option.dataset.sound ? 'soundEnabled' : null;
+            
+            if (!type) return;
+            
+            // Remover clase active de opciones del mismo tipo
+            option.parentElement.querySelectorAll('.config-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            // Activar opción seleccionada
+            option.classList.add('active');
+            
+            // Actualizar estado del juego
+            if (type === 'difficulty') {
+                gameState.difficulty = option.dataset.difficulty;
+            } else if (type === 'gridSize') {
+                gameState.gridSize = parseInt(option.dataset.grid);
+                if (gameState.isRunning) {
+                    resetGame();
+                }
+            } else if (type === 'borderMode') {
+                gameState.borderMode = option.dataset.border;
+            } else if (type === 'skin') {
+                gameState.skin = option.dataset.skin;
+                document.body.className = `skin-${gameState.skin}`;
+            } else if (type === 'soundEnabled') {
+                gameState.soundEnabled = option.dataset.sound === 'on';
+            }
+            
+            saveSettings();
+        }
+
+        // Renderizar el tablero de juego
+        function renderGameBoard() {
+            const cellSize = Math.min(400 / gameState.gridSize, 25);
+            const boardSize = gameState.gridSize * cellSize;
+            
+            gameBoard.style.width = `${boardSize}px`;
+            gameBoard.style.height = `${boardSize}px`;
+            gameBoard.innerHTML = '';
+            
+            // Aplicar colores según el skin
+            const colors = SKIN_COLORS[gameState.skin];
+            gameBoard.style.setProperty('--snake-color', colors.snake);
+            gameBoard.style.setProperty('--food-color', colors.food);
+            gameBoard.style.setProperty('--head-color', colors.head);
+        }
+
+        // Iniciar el juego
+        function startGame() {
+            if (gameState.isRunning) return;
+            
+            gameState.isRunning = true;
+            gameState.isPaused = false;
+            
+            // Inicializar serpiente en el centro
+            const center = Math.floor(gameState.gridSize / 2);
+            snake = [
+                { x: center, y: center },
+                { x: center - 1, y: center },
+                { x: center - 2, y: center }
+            ];
+            
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            
+            generateFood();
+            updateDisplay();
+            
+            // Configurar velocidad según dificultad
+            const settings = DIFFICULTY_SETTINGS[gameState.difficulty];
+            currentSpeed = settings.initialSpeed;
+            
+            gameLoop = setInterval(gameUpdate, currentSpeed);
+        }
+
+        // Pausar/reanudar juego
+        function togglePause() {
+            if (!gameState.isRunning) return;
+            
+            gameState.isPaused = !gameState.isPaused;
+            
+            if (gameState.isPaused) {
+                clearInterval(gameLoop);
+            } else {
+                gameLoop = setInterval(gameUpdate, currentSpeed);
+            }
+            
+            updateDisplay();
+        }
+
+        // Resetear juego
+        function resetGame() {
+            gameState.isRunning = false;
+            gameState.isPaused = false;
+            gameState.score = 0;
+            
+            clearInterval(gameLoop);
+            snake = [];
+            food = {};
+            
+            updateDisplay();
+            renderGameBoard();
+        }
+
+        // Actualizar lógica del juego
+        function gameUpdate() {
+            if (!gameState.isRunning || gameState.isPaused) return;
+            
+            // Actualizar dirección
+            direction = { ...nextDirection };
+            
+            // Calcular nueva posición de la cabeza
+            const head = { ...snake[0] };
+            head.x += direction.x;
+            head.y += direction.y;
+            
+            // Manejar bordes según el modo
+            if (gameState.borderMode === 'solid') {
+                if (head.x < 0 || head.x >= gameState.gridSize || 
+                    head.y < 0 || head.y >= gameState.gridSize) {
+                    gameOver();
+                    return;
+                }
+            } else {
+                // Modo atravesar borde
+                head.x = (head.x + gameState.gridSize) % gameState.gridSize;
+                head.y = (head.y + gameState.gridSize) % gameState.gridSize;
+            }
+            
+            // Verificar colisión con el cuerpo
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+            
+            // Añadir nueva cabeza
+            snake.unshift(head);
+            
+            // Verificar si comió comida
+            if (head.x === food.x && head.y === food.y) {
+                gameState.score += 10;
+                soundSystem.playEatSound();
+                
+                // Aumentar velocidad gradualmente
+                const settings = DIFFICULTY_SETTINGS[gameState.difficulty];
+                if (currentSpeed > settings.maxSpeed) {
+                    currentSpeed = Math.max(settings.maxSpeed, currentSpeed - settings.speedIncrease);
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(gameUpdate, currentSpeed);
+                }
+                
+                generateFood();
+                updateHighScore();
+            } else {
+                // Remover cola si no comió
+                snake.pop();
+            }
+            
+            renderSnake();
+        }
+
+        // Generar comida en posición aleatoria
+        function generateFood() {
+            let newFood;
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * gameState.gridSize),
+                    y: Math.floor(Math.random() * gameState.gridSize)
+                };
+            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+            
+            food = newFood;
+            renderFood();
+        }
+
+        // Renderizar serpiente
+        function renderSnake() {
+            // Limpiar serpiente anterior
+            document.querySelectorAll('.snake-segment').forEach(segment => segment.remove());
+            
+            const cellSize = Math.min(400 / gameState.gridSize, 25);
+            const colors = SKIN_COLORS[gameState.skin];
+            
+            snake.forEach((segment, index) => {
+                const segmentElement = document.createElement('div');
+                segmentElement.className = 'snake-segment';
+                
+                if (index === 0) {
+                    segmentElement.classList.add('snake-head');
+                    segmentElement.style.backgroundColor = colors.head;
+                } else {
+                    segmentElement.style.backgroundColor = colors.snake;
+                }
+                
+                segmentElement.style.left = `${segment.x * cellSize}px`;
+                segmentElement.style.top = `${segment.y * cellSize}px`;
+                segmentElement.style.width = `${cellSize}px`;
+                segmentElement.style.height = `${cellSize}px`;
+                
+                gameBoard.appendChild(segmentElement);
+            });
+        }
+
+        // Renderizar comida
+        function renderFood() {
+            document.querySelectorAll('.food').forEach(food => food.remove());
+            
+            const cellSize = Math.min(400 / gameState.gridSize, 25);
+            const colors = SKIN_COLORS[gameState.skin];
+            
+            const foodElement = document.createElement('div');
+            foodElement.className = 'food';
+            foodElement.style.backgroundColor = colors.food;
+            foodElement.style.left = `${food.x * cellSize}px`;
+            foodElement.style.top = `${food.y * cellSize}px`;
+            foodElement.style.width = `${cellSize}px`;
+            foodElement.style.height = `${cellSize}px`;
+            
+            gameBoard.appendChild(foodElement);
+        }
+
+        // Game over
+        function gameOver() {
+            gameState.isRunning = false;
+            clearInterval(gameLoop);
+            soundSystem.playGameOverSound();
+            updateDisplay();
+        }
+
+        // Actualizar puntuación máxima
+        function updateHighScore() {
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('snakeHighScore', gameState.highScore.toString());
+            }
+        }
+
+        // Actualizar display
+        function updateDisplay() {
+            scoreElement.textContent = gameState.score;
+            highScoreElement.textContent = gameState.highScore;
+            
+            if (!gameState.isRunning) {
+                gameStatusElement.textContent = 'Presiona START';
+                gameStatusElement.className = 'game-status';
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            } else if (gameState.isPaused) {
+                gameStatusElement.textContent = 'PAUSADO';
+                gameStatusElement.className = 'game-status paused';
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            } else if (gameState.score > 0 && !gameState.isRunning) {
+                gameStatusElement.textContent = 'GAME OVER';
+                gameStatusElement.className = 'game-status game-over';
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            } else {
+                gameStatusElement.textContent = 'JUGANDO';
+                gameStatusElement.className = 'game-status playing';
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            }
+        }
+
+        // Cargar puntuación máxima guardada
+        function loadHighScore() {
+            const saved = localStorage.getItem('snakeHighScore');
+            if (saved) {
+                gameState.highScore = parseInt(saved);
+            }
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHighScore();
+            initGame();
+        });
+    </script>
+
+    <!-- --- SECCIÓN: DOCUMENTACIÓN --- -->
+    <!--
+    CÓMO EJECUTAR EL JUEGO:
+    1. Abre este archivo (index.html) directamente en cualquier navegador web
+    2. O usa el preview de Cursor (Ctrl+Shift+P -> "Preview")
+    3. El juego es completamente autocontenible, no requiere servidor
+
+    ARQUITECTURA DEL JUEGO:
+    - SECCIÓN CSS: Estilos responsive, animaciones, skins personalizables
+    - SECCIÓN JS: Lógica del juego modular con clases y funciones claras
+    - LOOP PRINCIPAL: gameUpdate() se ejecuta cada X ms según dificultad
+    - UPDATE: Calcula nueva posición, detecta colisiones, maneja comida
+    - RENDER: Actualiza DOM con posiciones de serpiente y comida
+    - CONFIGURACIÓN: Sistema de settings persistente con localStorage
+
+    DÓNDE CAMBIAR PARÁMETROS CLAVE:
+    - DEFAULT_GRID: Tamaño de cuadrícula por defecto (línea ~15)
+    - DIFFICULTY_SETTINGS: Velocidades y aceleración (línea ~25)
+    - SKIN_COLORS: Paletas de colores para cada skin (línea ~35)
+    - Variables CSS :root: Colores principales del tema (línea ~5)
+
+    PERSONALIZACIÓN FÁCIL:
+    - Cambia colores en :root del CSS
+    - Modifica velocidades en DIFFICULTY_SETTINGS
+    - Añade nuevos skins en SKIN_COLORS
+    - Ajusta tamaños de celda en renderGameBoard()
+    -->
+</body>
+</html>
